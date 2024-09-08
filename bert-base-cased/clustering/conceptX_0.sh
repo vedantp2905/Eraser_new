@@ -14,7 +14,7 @@ model=../glue-eraser-movie-bert-base-cased
 
 # maximum sentence length
 sentence_length=300
-# analyze latent concepts of layer 12
+# analyze latent concepts of layer 0
 layer=0
 
 outputDir=eraser_movie/layer${layer} #do not change this
