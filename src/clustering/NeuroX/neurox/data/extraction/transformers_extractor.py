@@ -535,9 +535,8 @@ def extract_representations(
         output_file,
         filetype=output_type,
         decompose_layers=decompose_layers,
-        filter_layers=filter_layers,
-        dtype=dtype,
-    )
+        filter_layers=filter_layers
+        )
 
     print("Extracting representations from model")
     tokenization_counts = {}  # Cache for tokenizer rules

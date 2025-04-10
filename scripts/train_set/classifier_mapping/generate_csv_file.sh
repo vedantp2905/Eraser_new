@@ -1,15 +1,15 @@
 #!/bin/bash
 
-cluster_num=400
-clusterDir=../clustering/eraser_movie
+cluster_num=300
+clusterDir=eraser_movie
 data=movie_train.txt
-scriptDir=../../../src/classifier_mapping
+scriptDir=src/classifier_mapping
 
-minfreq=5
-maxfreq=20
-delfreq=1000000
+minfreq=0
+maxfreq=15000
+delfreq=15000
 
-saveDir=clusters_csv_train
+saveDir=eraser_movie/layer12/clusters_csv_train
 mkdir $saveDir
 
 i=12

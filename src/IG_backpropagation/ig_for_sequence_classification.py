@@ -13,7 +13,7 @@ import numpy as np
 
 import torch
 
-from transformers import BertTokenizer, BertForSequenceClassification
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 
 class Explainer(ABC):
@@ -35,69 +35,34 @@ class Explainer(ABC):
     def interpret(self, sentence, *args, **kwargs):
         pass
 
-    def _detokenize_explanation(self, sentence, tokenized_explanation, method="max"):
-        assert method in ["max", "avg", "first", "last"]
-
+    def _detokenize_explanation(self, tokenized_explanation):
+        """Detokenizes subword tokens and aggregates their attributions."""
+        current_token = ""
+        current_attribution = 0.0
         detokenized_explanation = []
-        line = sentence.strip()
-        original_tokens = line.split(" ")
-
-        idx_to_pick = []
+        
         current_idx = 0
-        for token in original_tokens:
-            while (
-                tokenized_explanation[current_idx][0]
-                in self.tokenizer.all_special_tokens
-            ):
-                detokenized_explanation.append(tokenized_explanation[current_idx])
-                current_idx += 1
-
-            if not token.startswith(
-                tokenized_explanation[current_idx][0]
-            ) and not token.lower().startswith(tokenized_explanation[current_idx][0]):
-                print(
-                    f"[WARNING] Detokenization Failed at {token} vs {tokenized_explanation[current_idx][0]}"
-                )
-            tokenized_length = len(self.tokenizer.tokenize(token))
-            if method == "first":
-                detokenized_explanation.append(
-                    (token, tokenized_explanation[current_idx][1])
-                )
-                current_idx += tokenized_length
-            elif method == "last":
-                current_idx += tokenized_length
-                detokenized_explanation.append(
-                    (token, tokenized_explanation[current_idx - 1][1])
-                )
-            elif method == "max":
-                start_idx = current_idx
-                current_idx += tokenized_length
-                max_attrib = max(
-                    [
-                        tokenized_explanation[idx][1]
-                        for idx in range(start_idx, current_idx)
-                    ]
-                )
-                detokenized_explanation.append((token, max_attrib))
-            elif method == "avg":
-                start_idx = current_idx
-                current_idx += tokenized_length
-                avg_attrib = sum(
-                    [
-                        tokenized_explanation[idx][1]
-                        for idx in range(start_idx, current_idx)
-                    ]
-                ) / (current_idx - start_idx)
-                detokenized_explanation.append((token, avg_attrib))
-
-        while (
-            current_idx < len(tokenized_explanation)
-            and tokenized_explanation[current_idx][0]
-            in self.tokenizer.all_special_tokens
-        ):
-            detokenized_explanation.append(tokenized_explanation[current_idx])
+        while current_idx < len(tokenized_explanation):
+            token, attribution = tokenized_explanation[current_idx]
+            
+            # Handle RoBERTa's special "Ġ" prefix
+            if token.startswith('Ġ'):
+                token = token[1:]  # Remove the Ġ prefix
+                if current_token:  # Save previous token if exists
+                    detokenized_explanation.append((current_token, current_attribution))
+                current_token = token
+                current_attribution = attribution
+            else:
+                # For continuation tokens, append without space
+                current_token += token
+                current_attribution = max(current_attribution, attribution)
+            
             current_idx += 1
-
+        
+        # Add the last token
+        if current_token:
+            detokenized_explanation.append((current_token, current_attribution))
+        
         return detokenized_explanation
 
 
@@ -108,11 +73,11 @@ class IGExplainer(Explainer):
         # Layer 0 is embedding
         if layer == 0:
             self.interpreter = LayerIntegratedGradients(
-                self.custom_forward, self.model.bert.embeddings
+                self.custom_forward, self.model.roberta.embeddings
             )
         else:
             self.interpreter = LayerIntegratedGradients(
-                self.custom_forward, self.model.bert.encoder.layer[int(layer) - 1]
+                self.custom_forward, self.model.roberta.encoder.layer[int(layer) - 1]
             )
 
     def _summarize_attributions(self, attributions):
@@ -161,16 +126,7 @@ class IGExplainer(Explainer):
             explanations = {
                 "Raw": tokenized_explanation,
                 "Maximum of subtokens": self._detokenize_explanation(
-                    sentence, tokenized_explanation, method="max"
-                ),
-                "Average of subtokens": self._detokenize_explanation(
-                    sentence, tokenized_explanation, method="avg"
-                ),
-                "First Subtoken": self._detokenize_explanation(
-                    sentence, tokenized_explanation, method="first"
-                ),
-                "Last Subtoken": self._detokenize_explanation(
-                    sentence, tokenized_explanation, method="last"
+                    tokenized_explanation
                 ),
             }
 
@@ -188,8 +144,8 @@ def main():
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = BertForSequenceClassification.from_pretrained(args.model).to(device)
-    tokenizer = BertTokenizer.from_pretrained(args.model)
+    model = AutoModelForSequenceClassification.from_pretrained(args.model).to(device)
+    tokenizer = AutoTokenizer.from_pretrained(args.model)
 
     explainer = IGExplainer(model, tokenizer, device=device)
 

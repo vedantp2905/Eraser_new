@@ -32,7 +32,7 @@ Generating explanations for classification predictions based on latent concepts.
    * Run `scripts/train_set/classifier_mapping/generate_csv_file.sh`
    * Run `scripts/train_set/classifier_mapping/split_dataset.sh`
    * Run `scripts/train_set/classifier_mapping/logistic_regression.sh`
-   * Run `get_prediction_stat.sh`
+   * Run `scripts/train_set/classifier_mapping/get_prediction_stat.sh`
 
 3. Discover the Salient Tokens:
    * Run `scripts/train_set/IG_backpropagation/ig.sh`

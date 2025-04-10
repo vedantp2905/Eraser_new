@@ -1,18 +1,21 @@
 #!/bin/bash
 
-scriptDir=../../../src/classifier_mapping
+scriptDir=src/classifier_mapping
+dirName=eraser_movie
+layer=12
+baseDir=${dirName}/layer${layer}
 
-saveDir='split_dataset' #'split_dataset_CLS'
-mkdir ${saveDir}
+saveDir=${baseDir}/split_dataset
+mkdir -p ${saveDir}
 
-filePath='clusters_csv_train/'
+filePath=${baseDir}/clusters_csv_train/
 
 python ${scriptDir}/split_dataset.py \
   --file_path ${filePath} \
-  --layer 12 \
+  --layer ${layer} \
   --validation_size 0.1 \
   --train_dataset_save_path ${saveDir}/train/ \
   --validation_dataset_save_path ${saveDir}/validation/ \
   --id_save_filename ${saveDir}/id.txt \
-#  --is_first_file \
+  --is_first_file
 

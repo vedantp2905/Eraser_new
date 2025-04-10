@@ -1,10 +1,10 @@
 #!/bin/bash
 
-scriptDir=../../../src/IG_backpropagation
-inputFile=../clustering/movie_train.txt.tok.sent_len
-model=xxx # add path to the model to "xxx"
+scriptDir=src/IG_backpropagation
+inputFile=eraser_movie/movie_train.txt.tok.sent_len
+model="/mnt/c/Users/91917/Desktop/Research/eraser_movie_latentConcept/best_codebert_model"
 
-outDir=../IG_attributions
+outDir=eraser_movie/IG_attributions
 mkdir ${outDir}
 
 layer=12

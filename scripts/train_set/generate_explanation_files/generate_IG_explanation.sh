@@ -1,6 +1,6 @@
 #!/bin/bash
 
-scriptDir=../../../src/generate_explanation_files
+scriptDir=src/generate_explanation_files
 inputDir=../IG_attributions
 outDir=../IG_explanation_files_mass_50
 
