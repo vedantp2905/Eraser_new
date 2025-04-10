@@ -5,7 +5,7 @@ inputPath=data/ # path to a sentence file
 input=movie_train.txt #name of the sentence file
 dirName=eraser_movie
 # put model name or path to a finetuned model for "xxx"
-model="/mnt/c/Users/91917/Desktop/Research/eraser_movie_latentConcept/best_codebert_model"
+model="best_codebert_model"
 
 # maximum sentence length
 sentence_length=512

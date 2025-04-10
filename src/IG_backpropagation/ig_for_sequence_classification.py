@@ -1,4 +1,5 @@
 import argparse
+import warnings
 
 from abc import ABC, abstractmethod
 
@@ -15,6 +16,7 @@ import torch
 
 from transformers import BertTokenizer, BertForSequenceClassification, RobertaTokenizer, RobertaForSequenceClassification
 
+warnings.filterwarnings("ignore", message="Detokenization Failed")
 
 class Explainer(ABC):
     def __init__(self, model, tokenizer, no_detokenize=False, device=None):
@@ -43,56 +45,66 @@ class Explainer(ABC):
         original_tokens = line.split(" ")
 
         current_idx = 0
-        for token in original_tokens:
-            # Skip if we've reached the end of tokenized explanations
-            if current_idx >= len(tokenized_explanation):
-                break
-            
-            # Skip special tokens
-            while (current_idx < len(tokenized_explanation) and 
-                   tokenized_explanation[current_idx][0] in self.tokenizer.all_special_tokens):
+        while current_idx < len(tokenized_explanation):
+            # Handle special tokens
+            if tokenized_explanation[current_idx][0] in self.tokenizer.all_special_tokens:
                 detokenized_explanation.append(tokenized_explanation[current_idx])
                 current_idx += 1
-            
-            if current_idx >= len(tokenized_explanation):
-                break
+                continue
 
-            # Remove the 'Ġ' prefix for comparison
+            # Get current token and clean it
             current_token = tokenized_explanation[current_idx][0]
             if current_token.startswith('Ġ'):
                 current_token = current_token[1:]
 
             # More flexible matching
-            if not (token.lower() == current_token.lower() or 
-                    token.lower().startswith(current_token.lower()) or 
-                    current_token.lower().startswith(token.lower())):
-                print(f"[WARNING] Detokenization Failed at {token} vs {tokenized_explanation[current_idx][0]}")
-            
-            tokenized_length = max(1, len(self.tokenizer.tokenize(token)))
-            
-            try:
-                if method == "first":
-                    detokenized_explanation.append((token, tokenized_explanation[current_idx][1]))
-                elif method == "last":
-                    detokenized_explanation.append((token, tokenized_explanation[min(current_idx + tokenized_length - 1, 
-                                                                                  len(tokenized_explanation) - 1)][1]))
-                elif method == "max":
-                    max_attrib = max([tokenized_explanation[idx][1] 
-                                    for idx in range(current_idx, 
-                                                   min(current_idx + tokenized_length,
-                                                       len(tokenized_explanation)))])
-                    detokenized_explanation.append((token, max_attrib))
-                elif method == "avg":
-                    avg_attrib = sum([tokenized_explanation[idx][1] 
-                                    for idx in range(current_idx,
-                                                  min(current_idx + tokenized_length,
-                                                      len(tokenized_explanation)))]) / tokenized_length
-                    detokenized_explanation.append((token, avg_attrib))
-            except Exception as e:
-                print(f"[WARNING] Error processing token {token}: {str(e)}")
-                detokenized_explanation.append((token, 0.0))  # fallback value
-            
-            current_idx += tokenized_length
+            found_match = False
+            for orig_token in original_tokens:
+                if (orig_token == current_token or 
+                    orig_token.lower() == current_token.lower() or
+                    orig_token.startswith(current_token) or 
+                    current_token.startswith(orig_token)):
+                    
+                    # Calculate how many subwords this token might have
+                    remaining_tokens = tokenized_explanation[current_idx:]
+                    total_length = 1  # At least include current token
+                    for j, (token, _) in enumerate(remaining_tokens[1:], 1):  # Start from next token
+                        if token.startswith('Ġ') or (current_idx + j) >= len(tokenized_explanation):
+                            break
+                        total_length += 1
+
+                    # Safety check for total_length
+                    total_length = min(total_length, len(tokenized_explanation) - current_idx)
+                    
+                    if total_length > 0:
+                        # Get the relevant tokens
+                        relevant_tokens = tokenized_explanation[current_idx:current_idx + total_length]
+                        
+                        # Aggregate the attributions based on method
+                        if method == "first":
+                            value = relevant_tokens[0][1]
+                        elif method == "last":
+                            value = relevant_tokens[-1][1]
+                        elif method == "max":
+                            value = max(t[1] for t in relevant_tokens)
+                        else:  # avg
+                            value = sum(t[1] for t in relevant_tokens) / len(relevant_tokens)
+
+                        detokenized_explanation.append((orig_token, value))
+                        current_idx += total_length
+                        found_match = True
+                        break
+                    else:
+                        # Fallback if no valid length found
+                        detokenized_explanation.append((orig_token, tokenized_explanation[current_idx][1]))
+                        current_idx += 1
+                        found_match = True
+                        break
+
+            if not found_match:
+                # If no match found, just use the token as is with its attribution
+                detokenized_explanation.append((tokenized_explanation[current_idx][0], tokenized_explanation[current_idx][1]))
+                current_idx += 1
 
         return detokenized_explanation
 

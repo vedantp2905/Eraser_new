@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-scriptDir=../../../src/concept_mapper
+scriptDir=src/concept_mapper
 fileDir=position_representation_info  #saliency_representation_info #
 classifierDir=../../train_set/classifier_mapping/result/model
 

@@ -2,7 +2,7 @@
 
 scriptDir=src/IG_backpropagation
 inputFile=eraser_movie/movie_train.txt.tok.sent_len
-model="/mnt/c/Users/91917/Desktop/Research/eraser_movie_latentConcept/best_codebert_model"
+model="best_codebert_model"
 
 outDir=eraser_movie/IG_attributions
 mkdir -p ${outDir}
