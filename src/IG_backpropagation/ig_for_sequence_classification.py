@@ -42,61 +42,57 @@ class Explainer(ABC):
         line = sentence.strip()
         original_tokens = line.split(" ")
 
-        idx_to_pick = []
         current_idx = 0
         for token in original_tokens:
-            while (
-                tokenized_explanation[current_idx][0]
-                in self.tokenizer.all_special_tokens
-            ):
+            # Skip if we've reached the end of tokenized explanations
+            if current_idx >= len(tokenized_explanation):
+                break
+            
+            # Skip special tokens
+            while (current_idx < len(tokenized_explanation) and 
+                   tokenized_explanation[current_idx][0] in self.tokenizer.all_special_tokens):
                 detokenized_explanation.append(tokenized_explanation[current_idx])
                 current_idx += 1
+            
+            if current_idx >= len(tokenized_explanation):
+                break
 
-            if not token.startswith(
-                tokenized_explanation[current_idx][0]
-            ) and not token.lower().startswith(tokenized_explanation[current_idx][0]):
-                print(
-                    f"[WARNING] Detokenization Failed at {token} vs {tokenized_explanation[current_idx][0]}"
-                )
-            tokenized_length = len(self.tokenizer.tokenize(token))
-            if method == "first":
-                detokenized_explanation.append(
-                    (token, tokenized_explanation[current_idx][1])
-                )
-                current_idx += tokenized_length
-            elif method == "last":
-                current_idx += tokenized_length
-                detokenized_explanation.append(
-                    (token, tokenized_explanation[current_idx - 1][1])
-                )
-            elif method == "max":
-                start_idx = current_idx
-                current_idx += tokenized_length
-                max_attrib = max(
-                    [
-                        tokenized_explanation[idx][1]
-                        for idx in range(start_idx, current_idx)
-                    ]
-                )
-                detokenized_explanation.append((token, max_attrib))
-            elif method == "avg":
-                start_idx = current_idx
-                current_idx += tokenized_length
-                avg_attrib = sum(
-                    [
-                        tokenized_explanation[idx][1]
-                        for idx in range(start_idx, current_idx)
-                    ]
-                ) / (current_idx - start_idx)
-                detokenized_explanation.append((token, avg_attrib))
+            # Remove the 'Ġ' prefix for comparison
+            current_token = tokenized_explanation[current_idx][0]
+            if current_token.startswith('Ġ'):
+                current_token = current_token[1:]
 
-        while (
-            current_idx < len(tokenized_explanation)
-            and tokenized_explanation[current_idx][0]
-            in self.tokenizer.all_special_tokens
-        ):
-            detokenized_explanation.append(tokenized_explanation[current_idx])
-            current_idx += 1
+            # More flexible matching
+            if not (token.lower() == current_token.lower() or 
+                    token.lower().startswith(current_token.lower()) or 
+                    current_token.lower().startswith(token.lower())):
+                print(f"[WARNING] Detokenization Failed at {token} vs {tokenized_explanation[current_idx][0]}")
+            
+            tokenized_length = max(1, len(self.tokenizer.tokenize(token)))
+            
+            try:
+                if method == "first":
+                    detokenized_explanation.append((token, tokenized_explanation[current_idx][1]))
+                elif method == "last":
+                    detokenized_explanation.append((token, tokenized_explanation[min(current_idx + tokenized_length - 1, 
+                                                                                  len(tokenized_explanation) - 1)][1]))
+                elif method == "max":
+                    max_attrib = max([tokenized_explanation[idx][1] 
+                                    for idx in range(current_idx, 
+                                                   min(current_idx + tokenized_length,
+                                                       len(tokenized_explanation)))])
+                    detokenized_explanation.append((token, max_attrib))
+                elif method == "avg":
+                    avg_attrib = sum([tokenized_explanation[idx][1] 
+                                    for idx in range(current_idx,
+                                                  min(current_idx + tokenized_length,
+                                                      len(tokenized_explanation)))]) / tokenized_length
+                    detokenized_explanation.append((token, avg_attrib))
+            except Exception as e:
+                print(f"[WARNING] Error processing token {token}: {str(e)}")
+                detokenized_explanation.append((token, 0.0))  # fallback value
+            
+            current_idx += tokenized_length
 
         return detokenized_explanation
 
