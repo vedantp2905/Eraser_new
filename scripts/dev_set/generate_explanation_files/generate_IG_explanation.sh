@@ -1,8 +1,8 @@
 #!/bin/bash
 
-scriptDir=../../../src/generate_explanation_files
-inputDir=../IG_attributions
-outDir=../IG_explanation_files_mass_50
+scriptDir=src/generate_explanation_files
+inputDir=eraser_movie_dev/IG_attributions
+outDir=eraser_movie_dev/IG_explanation_files_mass_50
 
 mkdir ${outDir}
 

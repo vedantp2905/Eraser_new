@@ -1,12 +1,19 @@
 #!/bin/bash
 
-scriptDir=../../../src/IG_backpropagation
-inputFile=../clustering/movie_dev_subset.txt.tok.sent_len
-model=xxx # add path to the model to "xxx"
+scriptDir=src/IG_backpropagation
+inputFile=eraser_movie_dev/movie_dev_subset.txt.tok.sent_len
+model="best_codebert_model"
 
-outDir=../IG_attributions
-mkdir ${outDir}
+outDir=eraser_movie_dev/IG_attributions
+mkdir -p ${outDir}
 
 layer=12
 saveFile=${outDir}/IG_explanation_layer_${layer}.csv
-python ${scriptDir}/ig_for_sequence_classification.py ${inputFile} ${model} $layer ${saveFile}
+
+# Change to use RobertaForSequenceClassification instead of BertForSequenceClassification
+python ${scriptDir}/ig_for_sequence_classification.py \
+    --input_file ${inputFile} \
+    --model ${model} \
+    --layer ${layer} \
+    --save_file ${saveFile} \
+    --model_type roberta

@@ -1,14 +1,17 @@
 #!/bin/bash
 
-clusterPath=../clustering/eraser_movie_dev
-explanation=explanation_words.txt
-clusterSize=400
+clusterPath=eraser_movie_dev/layer12/results
+explanation=eraser_movie_dev/layer12/explanation/explanation_CLS.txt
+clusterSize=300
 percentage=90
 
-savePath=../cluster_Labels_$percentage%
-mkdir $savePath
+savePath=eraser_movie_dev/layer12/explanation/cluster_Labels_${percentage}%
+mkdir -p ${savePath}
 
 layer=12
-saveFile=${savePath}/clusterLabel_layer$layer.json
-echo Layer$layer
-python scripts/generate_cluster_label_all_tokens.py -c $clusterPath/layer$layer/results/clusters-$clusterSize.txt -e $explanation -p $percentage -s $saveFile
+saveFile=${savePath}/clusterLabel_layer${layer}.json
+echo "Layer${layer}"
+python src/generate_explanation_files/generate_all_tokens_explanation.py \
+    -i ${clusterPath}/clusters-${clusterSize}.txt \
+    -e ${explanation} \
+    -s ${saveFile}
