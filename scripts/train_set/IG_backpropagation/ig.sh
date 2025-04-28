@@ -2,7 +2,7 @@
 
 scriptDir=src/IG_backpropagation
 inputFile=eraser_movie/movie_train.txt.tok.sent_len
-model="best_codebert_model"
+model="google-bert/bert-base-cased"
 
 outDir=eraser_movie/IG_attributions
 mkdir -p ${outDir}
@@ -16,4 +16,4 @@ python ${scriptDir}/ig_for_sequence_classification.py \
     --model ${model} \
     --layer ${layer} \
     --save_file ${saveFile} \
-    --model_type roberta
+    --model_type bert

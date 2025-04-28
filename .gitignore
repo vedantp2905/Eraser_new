@@ -1,3 +1,7 @@
 best_codebert_model
 eraser_movie
-
+best_model_POS
+codebert_base_results
+logs
+codebert_POS_finetuned_results
+*pyc

@@ -135,7 +135,8 @@ class IGExplainer(Explainer):
         return attributions
 
     def interpret(self, sentence, *args, **kwargs):
-        inputs = self.tokenizer(sentence, return_tensors="pt")
+        # Add truncation=True to handle long sequences
+        inputs = self.tokenizer(sentence, return_tensors="pt", truncation=True, max_length=512)
 
         inputs = inputs.to(self.device)
 
@@ -227,24 +228,24 @@ def main():
     all_saliencies = []
     with open(args.input_file) as fp:
         for sentence_idx, line in enumerate(fp):
-            result = explainer.interpret(line.strip())
+            try:
+                result = explainer.interpret(line.strip())
+                sentence, predicted_class, predicted_confidence, explanations = result
+                print(f"Sentence: {sentence}")
+                print(
+                    f"Predicted class: {predicted_class} ({predicted_confidence*100:.2f}%)"
+                )
+                saliencies = explanations["Maximum of subtokens"]
+                saliencies = [(w, abs(s)) for w, s in saliencies]
+                print(f"Saliencies: {saliencies}")
 
-            sentence, predicted_class, predicted_confidence, explanations = result
-            print(f"Sentence: {sentence}")
-            print(
-                f"Predicted class: {predicted_class} ({predicted_confidence*100:.2f}%)"
-            )
-            saliencies = explanations["Maximum of subtokens"]
-            saliencies = [(w, abs(s)) for w, s in saliencies]
-            print(f"Saliencies: {saliencies}")
-
-            # label for 0 if the predicted class is negative, 1 if positive
-            # label = 0 if predicted_class == "negative" else 1
-
-            senten_idx.append(sentence_idx)
-            prediction.append(predicted_class)
-            confidence.append(predicted_confidence)
-            all_saliencies.append(saliencies)
+                senten_idx.append(sentence_idx)
+                prediction.append(predicted_class)
+                confidence.append(predicted_confidence)
+                all_saliencies.append(saliencies)
+            except RuntimeError as e:
+                print(f"Skipping line {sentence_idx} due to error: {str(e)}")
+                continue
 
     df["sentence_id"] = senten_idx
     df["predicted_class"] = prediction

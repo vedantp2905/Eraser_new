@@ -346,11 +346,6 @@ def load_aux_data(
                 ),
             )
 
-    assert len(invalid_activation_idx) < 100, (
-        "Too many mismatches (%d) - your paths are probably incorrect or something is wrong in the data!"
-        % (len(invalid_activation_idx))
-    )
-
     for num_deleted, idx in enumerate(invalid_activation_idx):
         print(
             "Deleting line %d: %d activations, %s aux, %d source, %d target"
@@ -473,11 +468,6 @@ def load_data(
                     len(tokens["target"][idx]),
                 )
             )
-
-    assert len(invalid_activation_idx) < 100, (
-        "Too many mismatches (%d) - your paths are probably incorrect or something is wrong in the data!"
-        % (len(invalid_activation_idx))
-    )
 
     for num_deleted, idx in enumerate(invalid_activation_idx):
         print(

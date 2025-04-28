@@ -5,7 +5,7 @@ inputPath=data/ # path to a sentence file
 input=movie_train.txt #name of the sentence file
 dirName=eraser_movie
 # put model name or path to a finetuned model for "xxx"
-model="best_codebert_model"
+model="google-bert/bert-base-cased"
 
 # maximum sentence length
 sentence_length=512
@@ -38,8 +38,8 @@ python ${scriptDir}/create_data_single_layer.py \
 
 # Filter number of tokens
 minfreq=0
-maxfreq=15000
-delfreq=15000
+maxfreq=10000000
+delfreq=10000000
 python ${scriptDir}/frequency_filter_data.py \
       --input-file ${outputDir}/$(basename ${working_file})-layer${layer}-dataset.json \
       --frequency-file ${working_file}.words_freq \
@@ -55,15 +55,16 @@ DATASETPATH=${outputDir}/$(basename ${working_file})-layer${layer}_min_${minfreq
 VOCABFILE=${outputDir}/processed-vocab.npy
 POINTFILE=${outputDir}/processed-point.npy
 RESULTPATH=${outputDir}/results
-CLUSTERS=300,300,300
+CLUSTERS=500,500,500
 
 python -u ${scriptDir}/extract_data.py --input-file $DATASETPATH --output-path $outputDir
 
 echo "Creating Clusters!"
-python -u ${scriptDir}/get_agglomerative_clusters.py \
-      --vocab-file $VOCABFILE \
-      --point-file $POINTFILE \
-      --output-path $RESULTPATH \
-      --cluster $CLUSTERS \
-      --range 1
+python src/clustering/get_agglomerative_clusters.py \
+    --vocab-file eraser_movie/layer12/processed-vocab.npy \
+    --point-file eraser_movie/layer12/processed-point.npy \
+    --output-path eraser_movie/layer12/results \
+    --cluster 500 \
+    --batch-size 1024
+    
 echo "DONE!"

@@ -2,7 +2,7 @@
 
 clusterPath=eraser_movie_dev/layer12/results
 explanation=eraser_movie_dev/layer12/explanation/explanation_CLS.txt
-clusterSize=300
+clusterSize=500
 percentage=90
 
 savePath=eraser_movie_dev/layer12/explanation/cluster_Labels_${percentage}%

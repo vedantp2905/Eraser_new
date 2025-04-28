@@ -5,56 +5,53 @@ sentence_idx and word_idx to generate the explanation file for CLS tokens.
 """
 
 import argparse
-
 import pandas as pd
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 import torch.nn.functional as F
 import os
 import json
+from tqdm import tqdm
 
 
 def get_dataset(file_name):
     with open(file_name, 'r') as f:
         data = f.readlines()
-
-    data = [line.strip() for line in data]
-
-    return data
+    return [line.strip() for line in data]
 
 
-def get_hidden_states_inputs(model, tokenizer, sentence, device):
-    """
-    Input the sentences into the model to get the hidden states and predicted label of the model.
+def process_batch(model, tokenizer, sentences, device, batch_size=32):
+    """Process sentences in batches to avoid memory issues"""
+    all_labels = []
+    all_input_ids = []
+    
+    for i in range(0, len(sentences), batch_size):
+        batch_sentences = sentences[i:i + batch_size]
+        
+        # Tokenize batch
+        inputs = tokenizer(batch_sentences, 
+                         padding=True, 
+                         truncation=True, 
+                         return_tensors="pt").to(device)
+        
+        with torch.no_grad():
+            outputs = model(**inputs)
+            predictions = F.softmax(outputs[0], dim=-1)
+            batch_labels = torch.argmax(predictions, axis=1).tolist()
+            
+        all_labels.extend(batch_labels)
+        all_input_ids.extend(inputs['input_ids'].cpu().tolist())
+        
+        # Clear CUDA cache after each batch
+        if device == "cuda":
+            torch.cuda.empty_cache()
+    
+    return all_input_ids, all_labels
 
-    Parameters
-    ----------
-    model: transformers.modeling_utils.PreTrainedModel
-        The pre-trained model to be used.
 
-    tokenizer: transformers.tokenization_utils_base.PreTrainedTokenizerBase
-        The tokenizer to be used.
-
-    dataset: datasets.arrow_dataset.Dataset
-        The dataset to be tokenized.
-    """
-
-    input_text = tokenizer(sentence, padding=True, truncation=True, return_tensors="pt").to(device)
-
-    with torch.no_grad():
-        outputs = model(**input_text)
-
-    predictions = F.softmax(outputs[0], dim=-1)
-    labels = torch.argmax(predictions, axis=1)  # 0: Negative, 1: Positive
-    labels = labels.tolist()
-
-    return input_text, labels
-
-
-def save_prediction(labels, sentence, output_path):
+def save_prediction(labels, sentences, output_path):
     path = output_path + '/predicted.csv'
-
-    df = pd.DataFrame({'sentence': sentence, 'labels': labels})
+    df = pd.DataFrame({'sentence': sentences, 'labels': labels})
     df.to_csv(path, sep='\t', index=False)
 
 
@@ -79,20 +76,14 @@ def generate_explanation(ids, labels, save_path):
         The [CLS] token representation and info.
     """
     predictions = []
-
-    for j in range(len(ids)):  # len(ids) => # of sentences
-        print(j, ids[j])
+    
+    for j in range(len(ids)):
         predicted_result = labels[j]
+        predictions.append(f"{predicted_result} -1 {j}")
 
-        # prediction class(label) ||| position_id ||| sentence_id
-        predictions.append(str(predicted_result) + " " + str(-1) + " " + str(j))
-
-    # check the directory exists or not
-    if not os.path.exists(save_path):
-        os.makedirs(save_path)
-
+    os.makedirs(save_path, exist_ok=True)
+    
     path = save_path + '/explanation_CLS.txt'
-    # save the explanation in a txt file
     with open(path, "w") as txt_file:
         for line in predictions:
             txt_file.write(line + "\n")
@@ -100,53 +91,50 @@ def generate_explanation(ids, labels, save_path):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset-name-or-path',
-                        type=str,
-                        default='./saved_sst2',
-                        help='The name or path of the dataset to be loaded.')
-
-    # parser.add_argument('--task-name',
-    #                     type=str,
-    #                     help="name of the task dataset")
-
-    parser.add_argument('--model-name',
-                        type=str,
-                        default='bert-base-cased',
-                        help='The name or path of the pre-trained model to be used.')
-
-    parser.add_argument('--tokenizer-name',
-                        type=str,
-                        default='bert-base-cased',
-                        help='The name or path of the tokenizer to be used.')
-
-    parser.add_argument('--save-dir',
-                        type=str,
-                        default='CLS_tokens/',
-                        help='The directory to save the extracted [CLS] token representation and info.')
+    parser.add_argument('--dataset-name-or-path', type=str, required=True,
+                       help='The name or path of the dataset to be loaded.')
+    parser.add_argument('--model-name', type=str, required=True,
+                       help='The name or path of the pre-trained model to be used.')
+    parser.add_argument('--tokenizer-name', type=str, required=True,
+                       help='The name or path of the tokenizer to be used.')
+    parser.add_argument('--save-dir', type=str, required=True,
+                       help='The directory to save the extracted [CLS] token representation and info.')
+    parser.add_argument('--batch-size', type=int, default=32,
+                       help='Batch size for processing (default: 32)')
+    parser.add_argument('--cpu-only', action='store_true',
+                       help='Force CPU usage even if CUDA is available')
 
     args = parser.parse_args()
 
+    # Load dataset
+    print("Loading dataset...")
+    sentences = get_dataset(args.dataset_name_or_path)
+    
+    # Setup device
+    device = "cpu" if args.cpu_only else ("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
 
-    sentence = get_dataset(args.dataset_name_or_path)
-    # dataset = get_dataset(args.dataset_name_or_path, args.task_name)
-
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # Load model and tokenizer
+    print("Loading model and tokenizer...")
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name)
     model = AutoModelForSequenceClassification.from_pretrained(args.model_name).to(device)
+    model.eval()  # Set model to evaluation mode
 
-    print("Finishing loading the dataset, model and tokenizer.")
-
-    inputs, labels = get_hidden_states_inputs(model, tokenizer, sentence, device)
-    print("Finishing getting the hidden states and predicted labels.")
-
-    # save_prediction(labels, dataset['sentence1'], dataset['sentence2'], args.save_dir)
-
-    save_prediction(labels, sentence, args.save_dir)
-
-    ids = inputs['input_ids']
-
-    generate_explanation(ids, labels, args.save_dir)
-    print("Finishing generating the explanation for [CLS] tokens.")
+    print(f"Processing {len(sentences)} sentences in batches of {args.batch_size}...")
+    try:
+        input_ids, labels = process_batch(model, tokenizer, sentences, device, args.batch_size)
+        
+        print("Saving predictions...")
+        save_prediction(labels, sentences, args.save_dir)
+        
+        print("Generating explanations...")
+        generate_explanation(input_ids, labels, args.save_dir)
+        
+        print("Successfully completed all operations!")
+        
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        raise
 
 
 if __name__ == '__main__':

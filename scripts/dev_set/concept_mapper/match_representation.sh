@@ -6,8 +6,8 @@ working_file=${input}.tok.sent_len
 
 dataPath=eraser_movie_dev
 minfreq=0
-maxfreq=15000
-delfreq=15000
+maxfreq=10000000
+delfreq=10000000
 
 savePath=eraser_movie_dev/layer12/representation_info
 mkdir -p ${savePath}
