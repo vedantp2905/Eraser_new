@@ -5,3 +5,6 @@ codebert_base_results
 logs
 codebert_POS_finetuned_results
 *pyc
+data/bert-cased-finetuned/
+python_java_classification
+test_complexity_original_ig

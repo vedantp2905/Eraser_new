@@ -1,7 +1,7 @@
 #!/bin/bash
 
 scriptDir=src/generate_explanation_files
-model="google-bert/bert-base-cased"
+model="/lustre/hdd/LAS/jannesar-lab/vedant29/Eraser_new/bert-cased-finetuned"
 inputFile=eraser_movie_dev/movie_dev_subset.txt.tok
 
 saveDir=eraser_movie_dev/layer12/explanation

@@ -5,7 +5,7 @@ inputPath=data/ # path to a sentence file
 input=movie_dev_subset.txt #name of the sentence file
 dirName=eraser_movie_dev
 # put model name or path to a finetuned model for "xxx"
-model="google-bert/bert-base-cased"
+model="/lustre/hdd/LAS/jannesar-lab/vedant29/Eraser_new/bert-cased-finetuned"
 
 # maximum sentence length
 sentence_length=512

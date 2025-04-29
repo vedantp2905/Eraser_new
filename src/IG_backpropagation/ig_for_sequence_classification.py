@@ -29,9 +29,64 @@ class Explainer(ABC):
         self.tokenizer = tokenizer
         self.no_detokenize = no_detokenize
 
-    @abstractmethod
-    def init_explainer(self, *args, **kwargs):
-        pass
+    def init_explainer(self, layer=0, pool_all_tokens=True, *args, **kwargs):
+        self.pool_all_tokens = pool_all_tokens
+
+        # Create a custom forward function that handles pooling explicitly
+        def custom_forward(input_ids, attention_mask):
+            # Get the hidden states
+            outputs = self.model(input_ids=input_ids, 
+                                attention_mask=attention_mask, 
+                                output_hidden_states=True)
+            
+            # Get the final hidden states
+            hidden_states = outputs.hidden_states[-1]
+            
+            if self.pool_all_tokens:
+                # Average pooling across all tokens
+                mask = attention_mask.unsqueeze(-1).expand(hidden_states.size()).float()
+                summed = torch.sum(hidden_states * mask, dim=1)
+                counts = torch.clamp(mask.sum(dim=1), min=1e-9)
+                pooled = summed / counts
+                
+                # Directly compute logits using the classifier's weights
+                if hasattr(self.model, 'classifier'):
+                    # For RoBERTa models, we need to access the dense layer first
+                    if hasattr(self.model.classifier, 'dense'):
+                        # Apply dense layer
+                        pooled = self.model.classifier.dense(pooled)
+                        pooled = torch.tanh(pooled)
+                        # Apply dropout
+                        if hasattr(self.model.classifier, 'dropout'):
+                            pooled = self.model.classifier.dropout(pooled)
+                        # Apply final layer
+                        return self.model.classifier.out_proj(pooled)
+                    else:
+                        # For BERT models
+                        return self.model.classifier(pooled)
+                else:
+                    # Fallback for other models
+                    return outputs.logits
+            else:
+                # Use CLS token only
+                return outputs.logits
+
+        self.custom_forward = custom_forward
+
+        # Determine which layer to use for attribution
+        if hasattr(self.model, 'roberta'):
+            base_model = self.model.roberta
+        else:
+            base_model = self.model.bert
+
+        # Layer 0 = embeddings, else use encoder
+        if layer == 0:
+            self.interpreter = LayerIntegratedGradients(self.custom_forward, base_model.embeddings)
+        else:
+            layer_idx = min(int(layer) - 1, len(base_model.encoder.layer) - 1)
+            self.interpreter = LayerIntegratedGradients(
+                self.custom_forward, base_model.encoder.layer[layer_idx]
+            )
 
     @abstractmethod
     def interpret(self, sentence, *args, **kwargs):
@@ -110,24 +165,8 @@ class Explainer(ABC):
 
 
 class IGExplainer(Explainer):
-    def init_explainer(self, layer=0, *args, **kwargs):
-        self.custom_forward = lambda *inputs: self.model(*inputs).logits
-
-        # Check if it's a RoBERTa or BERT model
-        if hasattr(self.model, 'roberta'):
-            base_model = self.model.roberta
-        else:
-            base_model = self.model.bert
-
-        # Layer 0 is embedding
-        if layer == 0:
-            self.interpreter = LayerIntegratedGradients(
-                self.custom_forward, base_model.embeddings
-            )
-        else:
-            self.interpreter = LayerIntegratedGradients(
-                self.custom_forward, base_model.encoder.layer[int(layer) - 1]
-            )
+    def init_explainer(self, layer=0, pool_all_tokens=True, *args, **kwargs):
+        super().init_explainer(layer=layer, pool_all_tokens=pool_all_tokens, *args, **kwargs)
 
     def _summarize_attributions(self, attributions):
         attributions = attributions.sum(dim=-1).squeeze(0)
@@ -137,7 +176,7 @@ class IGExplainer(Explainer):
     def interpret(self, sentence, *args, **kwargs):
         # Add truncation=True to handle long sequences
         inputs = self.tokenizer(sentence, return_tensors="pt", truncation=True, max_length=512)
-
+        
         inputs = inputs.to(self.device)
 
         logits = self.custom_forward(inputs["input_ids"], inputs["attention_mask"])
@@ -202,6 +241,8 @@ def main():
     parser.add_argument("--model_type", type=str, default="roberta", 
                        choices=["bert", "roberta"], 
                        help="Type of model to use")
+    parser.add_argument("--pool_all_tokens", action="store_true", 
+                       help="Average all token representations instead of using [CLS]")
 
     args = parser.parse_args()
 
@@ -216,7 +257,7 @@ def main():
         tokenizer = BertTokenizer.from_pretrained(args.model)
 
     explainer = IGExplainer(model, tokenizer, device=device)
-    explainer.init_explainer(layer=args.layer)
+    explainer.init_explainer(layer=args.layer, pool_all_tokens=args.pool_all_tokens)
 
     # create a pandas dataframe to store the results
     df = pd.DataFrame(columns=["sentence_id", "predicted_class", "predicted_confidence", "saliencies"])

@@ -2,7 +2,7 @@
 
 scriptDir=src/IG_backpropagation
 inputFile=eraser_movie_dev/movie_dev_subset.txt.tok.sent_len
-model="google-bert/bert-base-cased"
+model="/lustre/hdd/LAS/jannesar-lab/vedant29/Eraser_new/bert-cased-finetuned"
 
 outDir=eraser_movie_dev/IG_attributions
 mkdir -p ${outDir}
