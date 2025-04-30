@@ -1,9 +1,10 @@
 #!/bin/bash
 
-fileDir=eraser_movie/layer12/model/validate_predictions/
+layer=6
+fileDir=eraser_movie/layer${layer}/model/validate_predictions/
 scriptDir=src/classifier_mapping
 
-layer=12
+layer=6
 python ${scriptDir}/get_prediction_stats.py \
   --layer ${layer} \
   --file_path ${fileDir}

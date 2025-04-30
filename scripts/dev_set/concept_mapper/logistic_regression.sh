@@ -1,14 +1,15 @@
 #!/bin/bash
 
+layer=6
+
 scriptDir=src/concept_mapper
-fileDir=eraser_movie_dev/layer12/representation_info  # Changed to use representation info directory
-classifierDir=eraser_movie/layer12/model/model  # Simplified path
+fileDir=eraser_movie_dev/layer${layer}/representation_info  # Changed to use representation info directory
+classifierDir=eraser_movie/layer${layer}/model/model  # Simplified path
 
 # Create output directories
-savePath=eraser_movie_dev/layer12/explanation/latent_concepts/position_prediction
+savePath=eraser_movie_dev/layer${layer}/explanation/latent_concepts/position_prediction
 mkdir -p ${savePath}
 
-layer=12
 echo "Processing layer ${layer}"
 
 # Debug prints

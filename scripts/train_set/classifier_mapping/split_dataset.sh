@@ -2,7 +2,7 @@
 
 scriptDir=src/classifier_mapping
 dirName=eraser_movie
-layer=12
+layer=6
 baseDir=${dirName}/layer${layer}
 
 saveDir=${baseDir}/split_dataset
