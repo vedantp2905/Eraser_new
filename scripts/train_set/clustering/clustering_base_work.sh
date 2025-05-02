@@ -6,8 +6,8 @@ input=movie_train.txt #name of the sentence file
 dirName="eraser_movie"
 mkdir $dirName
 
-# maximum sentence length
-sentence_length=512
+# Accept sentence length argument
+sentence_length=${1}
 
 working_file=$input.tok.sent_len #do not change this
 

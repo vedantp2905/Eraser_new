@@ -1,9 +1,10 @@
 #!/bin/bash
 
-layer=6
+# Accept layer argument
+layer=${1}
 
 scriptDir=src/generate_explanation_files
-model="/lustre/hdd/LAS/jannesar-lab/vedant29/finetuned_models/codebert-pos-lang-classification/best_model"
+model=${2}
 inputFile=eraser_movie_dev/movie_dev_subset.txt.tok
 
 saveDir=eraser_movie_dev/layer${layer}/explanation

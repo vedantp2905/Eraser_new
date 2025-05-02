@@ -2,7 +2,10 @@
 
 scriptDir=src/classifier_mapping
 dirName=eraser_movie
-layer=6
+
+# Accept layer argument
+layer=${1}
+
 baseDir=${dirName}/layer${layer}
 
 saveDir=${baseDir}/split_dataset

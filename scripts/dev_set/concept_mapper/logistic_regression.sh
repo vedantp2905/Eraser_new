@@ -1,6 +1,7 @@
 #!/bin/bash
 
-layer=6
+# Accept layer argument
+layer=${1}
 
 scriptDir=src/concept_mapper
 fileDir=eraser_movie_dev/layer${layer}/representation_info  # Changed to use representation info directory

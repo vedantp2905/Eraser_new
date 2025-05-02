@@ -1,9 +1,11 @@
 #!/bin/bash
 
-layer=6
+# Accept layer argument
+layer=${1}
+
 clusterPath=eraser_movie/layer${layer}/results
 explanation=eraser_movie/layer${layer}/explanation/explanation_CLS.txt
-clusterSize=30
+clusterSize=${2}
 percentage=90
 
 savePath=eraser_movie/layer${layer}/explanation/cluster_Labels_${percentage}%

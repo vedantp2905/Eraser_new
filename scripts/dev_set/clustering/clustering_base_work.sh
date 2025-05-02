@@ -6,8 +6,8 @@ input=movie_dev_subset.txt #name of the sentence file
 dirName="eraser_movie_dev"
 mkdir $dirName
 
-# maximum sentence length
-sentence_length=512
+# Accept layer argument
+sentence_length=${1}
 
 working_file=$input.tok.sent_len #do not change this
 

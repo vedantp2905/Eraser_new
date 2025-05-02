@@ -1,6 +1,7 @@
 #!/bin/bash
 
-layer=6
+# Accept layer argument
+layer=${1}
 
 scriptDir=src/concept_mapper
 input=eraser_movie_dev/layer${layer}/movie_dev_subset.txt

@@ -5,13 +5,10 @@ inputPath=data/ # path to a sentence file
 input=movie_dev_subset.txt #name of the sentence file
 dirName=eraser_movie_dev
 # put model name or path to a finetuned model for "xxx"
-model="/lustre/hdd/LAS/jannesar-lab/vedant29/finetuned_models/codebert-pos-lang-classification/best_model"
-
-# maximum sentence length
-sentence_length=512
-
-# analyze latent concepts of layer 12
-layer=6
+layer=${1}
+model=${2}
+sentence_length=${3}
+cluster_num=${4}
 
 outputDir=${dirName}/layer${layer} #do not change this
 mkdir -p ${outputDir}
@@ -55,7 +52,7 @@ DATASETPATH=${outputDir}/$(basename ${working_file})-layer${layer}_min_${minfreq
 VOCABFILE=${outputDir}/processed-vocab.npy
 POINTFILE=${outputDir}/processed-point.npy
 RESULTPATH=${outputDir}/results
-CLUSTERS=30,30,30
+CLUSTERS=${cluster_num},${cluster_num},${cluster_num}
 
 python -u ${scriptDir}/extract_data.py --input-file $DATASETPATH --output-path $outputDir
 
@@ -64,7 +61,7 @@ python src/clustering/get_agglomerative_clusters.py \
     --vocab-file eraser_movie_dev/layer${layer}/processed-vocab.npy \
     --point-file eraser_movie_dev/layer${layer}/processed-point.npy \
     --output-path eraser_movie_dev/layer${layer}/results \
-    --cluster 30 \
+    --cluster ${cluster_num} \
     --batch-size 1024
     
 echo "DONE!"
