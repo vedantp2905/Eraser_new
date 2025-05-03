@@ -1,3 +1,19 @@
+# To run:
+
+```bash
+./run.sh <model_name> <layer_number> <cluster_number> <max_length>
+```
+
+Default Arguments:
+- model: /lustre/hdd/LAS/jannesar-lab/vedant29/finetuned_models/finetuned_codebert_language_classification
+- layer: 12
+- cluster_num: 30
+- max_length: 512
+
+```bash
+./run.sh /lustre/hdd/LAS/jannesar-lab/vedant29/finetuned_models/finetuned_codebert_language_classification 12 30 512
+```
+
 # Latent Concept Explanation for Sentiment Classification Task
 
 This is the codebase for our EMNLP 2024 paper: [Latent Concept-based Explanation of NLP Models](https://aclanthology.org/2024.emnlp-main.692/).

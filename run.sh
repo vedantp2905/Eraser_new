@@ -13,10 +13,10 @@
 #SBATCH --output="logs/slurm-%j.out"
 
 # Accept model and layer arguments
-model="microsoft/codebert-base"
-layer=12
-cluster_num=30
-max_length=512
+model=${1:-"microsoft/codebert-base"}
+layer=${2:-12}
+cluster_num=${3:-30}
+max_length=${4:-512}
 
 # Initialize Conda
 eval "$(conda shell.bash hook)"
