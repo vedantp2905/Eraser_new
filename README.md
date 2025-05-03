@@ -5,7 +5,7 @@
 ```
 
 Default Arguments:
-- model: /lustre/hdd/LAS/jannesar-lab/vedant29/finetuned_models/finetuned_codebert_language_classification
+- model: <model_path or name>
 - layer: 12
 - cluster_num: 30
 - max_length: 512
