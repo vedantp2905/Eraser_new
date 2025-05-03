@@ -14,7 +14,7 @@ import numpy as np
 
 import torch
 
-from transformers import BertTokenizer, BertForTokenClassification, RobertaTokenizer, RobertaForTokenClassification
+from transformers import  RobertaForSequenceClassification, RobertaTokenizer
 
 warnings.filterwarnings("ignore", message="Detokenization Failed")
 
@@ -212,8 +212,8 @@ def main():
         model = RobertaForSequenceClassification.from_pretrained(args.model).to(device)
         tokenizer = RobertaTokenizer.from_pretrained(args.model)
     else:
-        model = BertForTokenClassification.from_pretrained(args.model).to(device)
-        tokenizer = BertTokenizer.from_pretrained(args.model)
+        model = RobertaForSequenceClassification.from_pretrained(args.model).to(device)
+        tokenizer = RobertaTokenizer.from_pretrained(args.model)
 
     explainer = IGExplainer(model, tokenizer, device=device)
     explainer.init_explainer(layer=args.layer)
