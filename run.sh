@@ -13,7 +13,7 @@
 #SBATCH --output="logs/slurm-%j.out"
 
 # Accept model and layer arguments
-model=${1:-"microsoft/codebert-base"}
+model=${1}
 layer=${2:-12}
 cluster_num=${3:-30}
 max_length=${4:-512}

@@ -19,4 +19,3 @@ python ${scriptDir}/ig_for_sequence_classification.py \
     --layer ${layer} \
     --save_file ${saveFile} \
     --model_type roberta 
-done

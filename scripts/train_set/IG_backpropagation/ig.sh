@@ -18,5 +18,4 @@ python ${scriptDir}/ig_for_sequence_classification.py \
     --model ${model} \
     --layer ${layer} \
     --save_file ${saveFile} \
-    --model_type roberta 
-done
+    --model_type roberta

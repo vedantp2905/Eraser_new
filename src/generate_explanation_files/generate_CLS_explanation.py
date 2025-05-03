@@ -6,7 +6,7 @@ sentence_idx and word_idx to generate the explanation file for CLS tokens.
 
 import argparse
 import pandas as pd
-from transformers import AutoTokenizer, RobertaForTokenClassification
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 import torch.nn.functional as F
 import os
@@ -117,7 +117,7 @@ def main():
     # Load model and tokenizer
     print("Loading model and tokenizer...")
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name)
-    model = RobertaForTokenClassification.from_pretrained(args.model_name).to(device)
+    model = AutoModelForSequenceClassification.from_pretrained(args.model_name).to(device)
     model.eval()  # Set model to evaluation mode
 
     print(f"Processing {len(sentences)} sentences in batches of {args.batch_size}...")
