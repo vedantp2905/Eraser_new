@@ -3,7 +3,7 @@
 #SBATCH --time=24:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=16
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:a100:1
 #SBATCH --mem=128G
 #SBATCH --job-name="run_model"
 #SBATCH --mail-user=vedant29@iastate.edu
