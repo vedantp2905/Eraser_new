@@ -56,12 +56,12 @@ CLUSTERS=${cluster_num},${cluster_num},${cluster_num}
 
 python -u ${scriptDir}/extract_data.py --input-file $DATASETPATH --output-path $outputDir
 
-echo "Creating Clusters!"
-python src/clustering/get_agglomerative_clusters.py \
-    --vocab-file eraser_movie_dev/layer${layer}/processed-vocab.npy \
-    --point-file eraser_movie_dev/layer${layer}/processed-point.npy \
-    --output-path eraser_movie_dev/layer${layer}/results \
-    --cluster ${cluster_num} \
-    --batch-size 1024
+# echo "Creating Clusters!"
+# python src/clustering/get_agglomerative_clusters.py \
+#     --vocab-file eraser_movie_dev/layer${layer}/processed-vocab.npy \
+#     --point-file eraser_movie_dev/layer${layer}/processed-point.npy \
+#     --output-path eraser_movie_dev/layer${layer}/results \
+#     --cluster ${cluster_num} \
+#     --batch-size 1024
     
 echo "DONE!"

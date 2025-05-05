@@ -55,21 +55,21 @@ if [ $? -ne 0 ]; then echo "Error in logistic_regression.sh"; exit 1; fi
 bash scripts/train_set/classifier_mapping/get_prediction_stat.sh $layer
 if [ $? -ne 0 ]; then echo "Error in get_prediction_stat.sh"; exit 1; fi
 
-# 3. Discover Salient Tokens
-echo "3. Discovering Salient Tokens..."
-bash scripts/train_set/IG_backpropagation/ig.sh $layer $model
-if [ $? -ne 0 ]; then echo "Error in ig.sh"; exit 1; fi
+# # 3. Discover Salient Tokens
+# echo "3. Discovering Salient Tokens..."
+# bash scripts/train_set/IG_backpropagation/ig.sh $layer $model
+# if [ $? -ne 0 ]; then echo "Error in ig.sh"; exit 1; fi
 
-# 4. Get Predictions
-echo "4. Getting Predictions..."
-bash scripts/train_set/generate_explanation_files/generate_CLS_explanation.sh $layer $model
-if [ $? -ne 0 ]; then echo "Error in generate_CLS_explanation.sh"; exit 1; fi
+# # 4. Get Predictions
+# echo "4. Getting Predictions..."
+# bash scripts/train_set/generate_explanation_files/generate_CLS_explanation.sh $layer $model
+# if [ $? -ne 0 ]; then echo "Error in generate_CLS_explanation.sh"; exit 1; fi
 
-bash scripts/train_set/generate_explanation_files/generate_all_tokens_explanation.sh $layer $cluster_num
-if [ $? -ne 0 ]; then echo "Error in generate_all_tokens_explanation.sh"; exit 1; fi
+# bash scripts/train_set/generate_explanation_files/generate_all_tokens_explanation.sh $layer $cluster_num
+# if [ $? -ne 0 ]; then echo "Error in generate_all_tokens_explanation.sh"; exit 1; fi
 
-bash scripts/train_set/generate_explanation_files/generate_IG_explanation.sh $layer
-if [ $? -ne 0 ]; then echo "Error in generate_IG_explanation.sh"; exit 1; fi
+# bash scripts/train_set/generate_explanation_files/generate_IG_explanation.sh $layer
+# if [ $? -ne 0 ]; then echo "Error in generate_IG_explanation.sh"; exit 1; fi
 
 echo "Starting Inference Phase..."
 
@@ -91,8 +91,8 @@ echo "3. Getting Predictions..."
 bash scripts/dev_set/generate_explanation_files/generate_CLS_explanation.sh $layer $model
 if [ $? -ne 0 ]; then echo "Error in dev generate_CLS_explanation.sh"; exit 1; fi
 
-bash scripts/dev_set/generate_explanation_files/generate_all_tokens_explanation.sh $layer $cluster_num
-if [ $? -ne 0 ]; then echo "Error in dev generate_all_tokens_explanation.sh"; exit 1; fi
+# bash scripts/dev_set/generate_explanation_files/generate_all_tokens_explanation.sh $layer $cluster_num
+# if [ $? -ne 0 ]; then echo "Error in dev generate_all_tokens_explanation.sh"; exit 1; fi
 
 bash scripts/dev_set/generate_explanation_files/generate_IG_explanation.sh $layer
 if [ $? -ne 0 ]; then echo "Error in dev generate_IG_explanation.sh"; exit 1; fi

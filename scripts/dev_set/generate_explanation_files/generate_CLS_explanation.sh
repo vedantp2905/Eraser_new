@@ -15,5 +15,4 @@ python ${scriptDir}/generate_CLS_explanation.py \
     --model-name ${model} \
     --tokenizer-name ${model} \
     --save-dir ${saveDir} \
-    --batch-size 16 \
-    --cpu-only  # Add this if GPU memory is still an issue
+    --batch-size 16 
