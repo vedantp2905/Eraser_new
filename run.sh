@@ -33,27 +33,27 @@ find scripts/ -name "*.sh" -type f -exec chmod +x {} \;
 
 echo "Starting Training Phase..."
 
-# # 1. Extract Latent Concepts
-# echo "1. Extracting Latent Concepts..."
-# bash scripts/train_set/clustering/clustering_base_work.sh $max_length
-# if [ $? -ne 0 ]; then echo "Error in clustering_base_work.sh"; exit 1; fi
+# 1. Extract Latent Concepts
+echo "1. Extracting Latent Concepts..."
+bash scripts/train_set/clustering/clustering_base_work.sh $max_length
+if [ $? -ne 0 ]; then echo "Error in clustering_base_work.sh"; exit 1; fi
 
-# bash scripts/train_set/clustering/clustering_conceptX.sh $layer $model $max_length $cluster_num
-# if [ $? -ne 0 ]; then echo "Error in clustering_conceptX.sh"; exit 1; fi
+bash scripts/train_set/clustering/clustering_conceptX.sh $layer $model $max_length $cluster_num
+if [ $? -ne 0 ]; then echo "Error in clustering_conceptX.sh"; exit 1; fi
 
-# # 2. Train ConceptMapper
-# echo "2. Training ConceptMapper..."
-# bash scripts/train_set/classifier_mapping/generate_csv_file.sh $layer $cluster_num
-# if [ $? -ne 0 ]; then echo "Error in generate_csv_file.sh"; exit 1; fi
+# 2. Train ConceptMapper
+echo "2. Training ConceptMapper..."
+bash scripts/train_set/classifier_mapping/generate_csv_file.sh $layer $cluster_num
+if [ $? -ne 0 ]; then echo "Error in generate_csv_file.sh"; exit 1; fi
 
-# bash scripts/train_set/classifier_mapping/split_dataset.sh $layer
-# if [ $? -ne 0 ]; then echo "Error in split_dataset.sh"; exit 1; fi
+bash scripts/train_set/classifier_mapping/split_dataset.sh $layer
+if [ $? -ne 0 ]; then echo "Error in split_dataset.sh"; exit 1; fi
 
-# bash scripts/train_set/classifier_mapping/logistic_regression.sh $layer
-# if [ $? -ne 0 ]; then echo "Error in logistic_regression.sh"; exit 1; fi
+bash scripts/train_set/classifier_mapping/logistic_regression.sh $layer
+if [ $? -ne 0 ]; then echo "Error in logistic_regression.sh"; exit 1; fi
 
-# bash scripts/train_set/classifier_mapping/get_prediction_stat.sh $layer
-# if [ $? -ne 0 ]; then echo "Error in get_prediction_stat.sh"; exit 1; fi
+bash scripts/train_set/classifier_mapping/get_prediction_stat.sh $layer
+if [ $? -ne 0 ]; then echo "Error in get_prediction_stat.sh"; exit 1; fi
 
 # # # 3. Discover Salient Tokens
 # # echo "3. Discovering Salient Tokens..."
