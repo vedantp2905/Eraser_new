@@ -55,7 +55,7 @@ def get_model_and_tokenizer(model_desc, device="cpu", random_weights=False):
     else:
         model_name = model_desc[0]
         tokenizer_name = model_desc[1]
-    model = AutoModel.from_pretrained(model_name, output_hidden_states=True).to(device)
+    model = AutoModel.from_pretrained(model_name, output_hidden_states=True, local_files_only=True).to(device)
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
 
     if random_weights:
